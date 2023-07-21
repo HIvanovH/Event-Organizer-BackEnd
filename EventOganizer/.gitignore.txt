@@ -1,0 +1,11 @@
+*.exe
+*.dll
+*.class
+*.jar
+.vs/
+.vscode/
+*.suo
+*.user
+*.sln.docstates
+*.cache
+*.DS_Store
