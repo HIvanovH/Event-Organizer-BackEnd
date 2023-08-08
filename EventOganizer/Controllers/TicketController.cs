@@ -18,6 +18,7 @@ namespace EventOganizer.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateTickets([FromBody] DTOs.TicketDTO dto)
         {
+            //if(dto!=null)
             var newTicket = new Entities.Ticket()
             {
                 Title = dto.Title,

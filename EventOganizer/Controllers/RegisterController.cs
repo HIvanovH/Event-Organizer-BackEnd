@@ -20,7 +20,7 @@ namespace EventOganizer.Controllers
         {
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
-            var newAccount = new Entities.Account()
+            var newAccount = new Entities.User()
             {
                 Name = dto.Name,
                 LastName = dto.LastName,
@@ -28,29 +28,11 @@ namespace EventOganizer.Controllers
                 Password = hashedPassword
             };
 
-            await _context.Accounts.AddAsync(newAccount);
+            await _context.Users.AddAsync(newAccount);
             await _context.SaveChangesAsync();
 
             return Ok("Saved!");
         }
 
-        [HttpGet]
-        [Route("{id}")]
-        public async Task<ActionResult<Entities.Ticket>> LoginUser([FromRoute] long id, [FromQuery] string password)
-        {
-            var account = await _context.Accounts.FirstOrDefaultAsync(q => q.Id == id);
-
-            if (account is null)
-            {
-                return NotFound("User not found");
-            }
-
-            if (!BCrypt.Net.BCrypt.Verify(password, account.Password))
-            {
-                return Unauthorized("Invalid credentials");
-            }
-
-            return Ok(account);
-        }
     }
 }

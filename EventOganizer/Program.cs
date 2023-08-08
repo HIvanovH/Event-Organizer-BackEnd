@@ -9,6 +9,9 @@ builder.Services.AddDbContext<AplicationDBContext>(options =>
     var connectionString = builder.Configuration.GetConnectionString("local");
     options.UseSqlServer(connectionString);
 });
+
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -25,9 +28,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors(builder =>
 {
-    builder.AllowAnyOrigin().
-    AllowAnyMethod().
-    AllowAnyHeader();
+    builder.WithOrigins("http://localhost:3000") // Replace with your frontend origin
+        .AllowAnyMethod()
+        .AllowAnyHeader()
+        .AllowCredentials(); // Allow credentials (cookies, authorization headers, etc.)
 });
 
 app.UseHttpsRedirection();

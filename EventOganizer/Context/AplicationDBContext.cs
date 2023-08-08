@@ -10,6 +10,8 @@ namespace EventOganizer.Context
 
         }
         public DbSet<Ticket> Tickets { get; set; }
-        public DbSet<Account> Accounts { get; set; }
+        public DbSet<User> Users { get; set; }
+
+        public DbSet<CartItem> CartItems { get; set; }
     }
 }
