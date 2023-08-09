@@ -38,6 +38,29 @@ namespace EventOganizer.Controllers
             return Ok("Saved!");
         }
 
+        [HttpPost]
+        public async Task<IActionResult> CreateLocationts(string location)
+        {
+            //if(dto!=null)
+
+            int.TryParse(_httpContextAccessor.HttpContext.Request.Cookies["userId"], out int userID);
+            var newLocation = new Entities.Location()
+            {
+                Address = location
+            };
+            await _context.Locations.AddAsync(newLocation);
+            await _context.SaveChangesAsync();
+
+            return Ok("Saved!");
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<List<Entities.Ticket>>> GetAllLocations()
+        {
+            var ticket = await _context.Tickets.ToListAsync();
+            return Ok(ticket);
+        }
+
         [HttpGet]
         public async Task<ActionResult<List<Entities.Ticket>>> GetAllTickets()
         {
