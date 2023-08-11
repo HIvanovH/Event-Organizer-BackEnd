@@ -11,5 +11,7 @@ namespace EventOganizer.Entities
         public string Password { get; set; }
 
         public ICollection<CartItem> Cart { get; set; } = new List<CartItem>();
+
+        public bool isAdmin { get; set; }
     }
 }

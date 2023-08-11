@@ -1,4 +1,5 @@
 ﻿using EventOganizer.Context;
+using EventOganizer.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +24,9 @@ namespace EventOganizer.Controllers
             //if(dto!=null)
             DateTime parsedDate = DateTime.Parse(dto.Date);
             int.TryParse(_httpContextAccessor.HttpContext.Request.Cookies["userId"], out int userID);
+
+           
+
             var newTicket = new Entities.Ticket()
             {
                 Title = dto.Title,
@@ -32,36 +36,19 @@ namespace EventOganizer.Controllers
                 Location = dto.Location,
                 Date = parsedDate,
             };
+            
             await _context.Tickets.AddAsync(newTicket);
             await _context.SaveChangesAsync();
 
             return Ok("Saved!");
         }
 
-        [HttpPost]
-        public async Task<IActionResult> CreateLocationts(string location)
-        {
-            //if(dto!=null)
+       
 
-            int.TryParse(_httpContextAccessor.HttpContext.Request.Cookies["userId"], out int userID);
-            var newLocation = new Entities.Location()
-            {
-                Address = location
-            };
-            await _context.Locations.AddAsync(newLocation);
-            await _context.SaveChangesAsync();
-
-            return Ok("Saved!");
-        }
+     
 
         [HttpGet]
-        public async Task<ActionResult<List<Entities.Ticket>>> GetAllLocations()
-        {
-            var ticket = await _context.Tickets.ToListAsync();
-            return Ok(ticket);
-        }
 
-        [HttpGet]
         public async Task<ActionResult<List<Entities.Ticket>>> GetAllTickets()
         {
             var ticket = await _context.Tickets.ToListAsync();
