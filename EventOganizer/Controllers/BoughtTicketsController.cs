@@ -9,7 +9,7 @@ namespace EventOganizer.Controllers
     [Route("api/boughtItems")]
     public class BoughtTicketsController : Controller
     {
-        private readonly AplicationDBContext _context;
+       /* private readonly AplicationDBContext _context;
         private readonly IHttpContextAccessor _httpContextAccessor;
         public BoughtTicketsController(AplicationDBContext context)
         {
@@ -31,6 +31,6 @@ namespace EventOganizer.Controllers
 
 
             return Ok(cartItems);
-        }
+        }*/
     }
 }

@@ -1,6 +1,7 @@
 ﻿using EventOganizer.Context;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 
 namespace EventOganizer.Controllers
 {
@@ -8,31 +9,39 @@ namespace EventOganizer.Controllers
     [ApiController]
     public class RegisterController : ControllerBase
     {
-        private readonly AplicationDBContext _context;
-
-        public RegisterController(AplicationDBContext context)
+        private readonly UserManager<IdentityUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
+        public RegisterController(UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager)
         {
-            _context = context;
+            _userManager = userManager;
+            _roleManager = roleManager;
         }
 
         [HttpPost]
         public async Task<IActionResult> CreateRegistration([FromBody] DTOs.RegisterDTO dto)
         {
-            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(dto.Password);
-
-            var newAccount = new Entities.User()
+            var newUser = new IdentityUser
             {
-                Name = dto.Name,
-                LastName = dto.LastName,
+                UserName = dto.Email,
                 Email = dto.Email,
-                Password = hashedPassword
             };
 
-            await _context.Users.AddAsync(newAccount);
-            await _context.SaveChangesAsync();
+            var result = await _userManager.CreateAsync(newUser, dto.Password);
 
-            return Ok("Saved!");
+            if (result.Succeeded)
+            {
+                if (!_roleManager.RoleExistsAsync("Cutomer").GetAwaiter().GetResult())
+                {
+                    await _roleManager.CreateAsync(new IdentityRole("Customer"));
+                }
+
+                await _userManager.AddToRoleAsync(newUser, "Customer");
+                return Ok("Registered successfully!");
+            }
+            else
+            {
+                return BadRequest(result.Errors);
+            }
         }
-
     }
 }
