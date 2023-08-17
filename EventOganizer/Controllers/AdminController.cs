@@ -26,7 +26,6 @@ namespace EventOganizer.Controllers
         public async Task<IActionResult> CreateTickets([FromBody] DTOs.TicketDTO dto)
         {
             DateTime parsedDate = DateTime.Parse(dto.Date);
-            int.TryParse(_httpContextAccessor.HttpContext.Request.Cookies["userId"], out int userID);
 
             var newTicket = new Entities.Ticket()
             {

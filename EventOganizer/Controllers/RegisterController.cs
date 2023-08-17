@@ -30,12 +30,12 @@ namespace EventOganizer.Controllers
 
             if (result.Succeeded)
             {
-                if (!_roleManager.RoleExistsAsync("Cutomer").GetAwaiter().GetResult())
+                if (!_roleManager.RoleExistsAsync("Admin").GetAwaiter().GetResult())
                 {
-                    await _roleManager.CreateAsync(new IdentityRole("Customer"));
+                    await _roleManager.CreateAsync(new IdentityRole("Admin"));
                 }
 
-                await _userManager.AddToRoleAsync(newUser, "Customer");
+                await _userManager.AddToRoleAsync(newUser, "Admin");
                 return Ok("Registered successfully!");
             }
             else
