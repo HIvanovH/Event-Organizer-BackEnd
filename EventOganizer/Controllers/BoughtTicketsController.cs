@@ -70,7 +70,8 @@ namespace EventOrganizer.Controllers
                 //var userPurchases = _dbContext.BoughtItems.Where(item => item.UserId.Equals(user.Id));
 
                 var query = from bo in _dbContext.BoughtItems
-                            join t in _dbContext.Tickets on bo.TicketId equals t.Id
+                            join t in _dbContext.Tickets on bo.TicketId equals t.Id 
+                            where bo.UserId == user.Id
                             group new { bo, t } by new { bo.UserId, bo.TicketId, t.Title, t.Description } into g
                             select new EventSummary 
                             {
