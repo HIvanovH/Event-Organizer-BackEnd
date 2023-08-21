@@ -6,6 +6,12 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using System.Data;
+using System.Globalization;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using EventOganizer.JWT;
 
 namespace EventOganizer.Controllers
 {
@@ -13,35 +19,52 @@ namespace EventOganizer.Controllers
     public class AdminController : Controller
     {
         private readonly AplicationDBContext _context;
-        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public AdminController(AplicationDBContext context, IHttpContextAccessor httpContextAccessor)
+        public AdminController(AplicationDBContext context)
         {
             _context = context;
-            _httpContextAccessor = httpContextAccessor;
         }
 
         [HttpPost]
         [Route("/CreateTickets")]
-        public async Task<IActionResult> CreateTickets([FromBody] DTOs.TicketDTO dto)
+        public async Task<IActionResult> CreateTickets([FromBody] EventOganizer.DTOs.TicketDTO dto)
         {
-            DateTime parsedDate = DateTime.Parse(dto.Date);
+            var jwt = Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
 
-            var newTicket = new Entities.Ticket()
+            if (string.IsNullOrEmpty(jwt) || !JwtUtility.ValidateToken(jwt, out var principal))
             {
-                Title = dto.Title,
-                Description = dto.Description,
-                Category = dto.Category,
-                Price = dto.Price,
-                Location = dto.Location,
-                Date = parsedDate,
-            };
+                return Unauthorized();
+            }
 
-            await _context.Tickets.AddAsync(newTicket);
-            await _context.SaveChangesAsync();
+            var userRoles = JwtUtility.GetUserRoles(principal);
+            if (userRoles.Contains("Admin")) { 
+            string combinedDateTimeString = $"{dto.Date} {dto.Time}";
 
-            return Ok("Saved!");
+            if (DateTime.TryParseExact(combinedDateTimeString, "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDateTime))
+            {
+                var newTicket = new Entities.Ticket()
+                {
+                    Title = dto.Title,
+                    Description = dto.Description,
+                    Category = dto.Category,
+                    Price = dto.Price,
+                    Location = dto.Location,
+                    Date = parsedDateTime,
+                };
+
+                await _context.Tickets.AddAsync(newTicket);
+                await _context.SaveChangesAsync();
+
+                return Ok("Saved!");
+            }
+            else
+            {
+                return BadRequest("Invalid date or time format");
+            }
+            }
+            return BadRequest("Roles could not be extracted.");
         }
+
 
         [HttpPut]
         [Route("{id}")]

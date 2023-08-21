@@ -15,5 +15,6 @@ namespace EventOganizer.Entities
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
         public string Category { get; set; }
         public DateTime Date { get; set; }
+        //public int Quantity { get; set; }
     }
 }

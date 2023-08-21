@@ -67,7 +67,6 @@ namespace EventOrganizer.Controllers
                 {
                     return BadRequest("User not found.");
                 }
-                //var userPurchases = _dbContext.BoughtItems.Where(item => item.UserId.Equals(user.Id));
 
                 var query = from bo in _dbContext.BoughtItems
                             join t in _dbContext.Tickets on bo.TicketId equals t.Id 
@@ -86,8 +85,6 @@ namespace EventOrganizer.Controllers
 
                 return Ok(eventSummaries);
 
-
-                //return Ok(result);
             }
             catch (Exception ex)
             {
@@ -101,5 +98,7 @@ namespace EventOrganizer.Controllers
         public int TotalQuantity { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
+        public string Location { get; set; }
+        public string Date { get; set; }
     }
 }

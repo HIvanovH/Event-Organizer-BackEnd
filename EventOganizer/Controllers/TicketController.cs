@@ -11,11 +11,10 @@ namespace EventOganizer.Controllers
     public class TicketController : ControllerBase
     {
         private readonly AplicationDBContext _context;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        public TicketController(AplicationDBContext context, IHttpContextAccessor httpContextAccessor)
+
+        public TicketController(AplicationDBContext context)
         {
             _context = context;
-            _httpContextAccessor = httpContextAccessor;
         }
 
         
@@ -23,8 +22,8 @@ namespace EventOganizer.Controllers
 
         public async Task<ActionResult<List<Entities.Ticket>>> GetAllTickets()
         {
-            var ticket = await _context.Tickets.ToListAsync();
-            return Ok(ticket);
+            var tickets = await _context.Tickets.ToListAsync();
+            return Ok(tickets);
         }
 
         [HttpGet]

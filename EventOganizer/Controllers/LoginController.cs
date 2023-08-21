@@ -58,6 +58,7 @@ namespace EventOganizer.Controllers
         new Claim(ClaimTypes.Name, user.UserName),
         new Claim(ClaimTypes.Email, user.Email),
         new Claim(ClaimTypes.Role, roles?.FirstOrDefault()),
+        new Claim("UserId", user.Id)
         };
 
 
