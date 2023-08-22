@@ -5,9 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventOganizer.Context
 {
-    public class AplicationDBContext : IdentityDbContext<IdentityUser, IdentityRole, string>
+    public class ApplicationDBContext : IdentityDbContext<IdentityUser, IdentityRole, string>
     {
-        public AplicationDBContext(DbContextOptions<AplicationDBContext> options) : base(options)
+        public ApplicationDBContext(DbContextOptions<ApplicationDBContext> options) : base(options)
         {
 
         }

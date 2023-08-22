@@ -10,9 +10,9 @@ namespace EventOganizer.Controllers
     [ApiController]
     public class TicketController : ControllerBase
     {
-        private readonly AplicationDBContext _context;
+        private readonly ApplicationDBContext _context;
 
-        public TicketController(AplicationDBContext context)
+        public TicketController(ApplicationDBContext context)
         {
             _context = context;
         }

@@ -1,12 +1,9 @@
-﻿
-using EventOganizer.Context;
+﻿using EventOganizer.Context;
 using EventOganizer.DTOs;
 using EventOganizer.Entities;
-using Microsoft.AspNetCore.Identity;
+using EventOganizer.JWT;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Linq;
 
 namespace EventOrganizer.Controllers
 {
@@ -14,8 +11,8 @@ namespace EventOrganizer.Controllers
     [ApiController]
     public class BoughtTicketsController : ControllerBase
     {
-        private readonly AplicationDBContext _dbContext;
-        public BoughtTicketsController(AplicationDBContext dbContext)
+        private readonly ApplicationDBContext _dbContext;
+        public BoughtTicketsController(ApplicationDBContext dbContext)
         {
             _dbContext = dbContext;
         }
@@ -33,36 +30,66 @@ namespace EventOrganizer.Controllers
 
                 var cartItems = request.CartItems;
 
+                using var transaction = _dbContext.Database.BeginTransaction();
+
                 foreach (var cartItem in cartItems)
                 {
                     var boughtItem = new BoughtItem
                     {
-                        UserId = user.Id, 
+                        UserId = user.Id,
                         TicketId = cartItem.Id,
                         Quantity = cartItem.Quantity
                     };
 
-                    cartItem.IsBought = true;
-                    _dbContext.BoughtItems.Add(boughtItem);
-                  
+                    var ticket = _dbContext.Tickets.FirstOrDefault(q => q.Id == cartItem.Id);
+
+                    if (ticket == null)
+                    {
+                        transaction.Rollback(); 
+                        return NotFound($"Ticket with ID {cartItem.Id} not found.");
+                    }
+
+                    ticket.Quantity -= cartItem.Quantity;
+
+                    if (ticket.Quantity < 0)
+                    {
+                        transaction.Rollback(); 
+                        return BadRequest("Not enough tickets available.");
+                    }
+                    else
+                    {
+                        cartItem.IsBought = true;
+                        _dbContext.BoughtItems.Add(boughtItem);
+                    }
                 }
 
                 _dbContext.SaveChanges();
+                transaction.Commit();
 
                 return Ok("Purchase completed successfully.");
             }
             catch (Exception ex)
             {
-                return BadRequest($"Error completing purchase: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Error completing purchase: {ex.Message}");
             }
         }
 
-        [HttpGet("history/{email}")]
-        public async Task<IActionResult> GetPurchaseHistory(string email)
+
+        [HttpGet("history")]
+        public async Task<IActionResult> GetPurchaseHistory()
         {
+
+            var jwt = Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+
+            if (string.IsNullOrEmpty(jwt) || !JwtUtility.ValidateToken(jwt, out var principal))
+            {
+                return Unauthorized();
+            }
+
+            var userEmail = JwtUtility.GetUserEmail(principal);
             try
             {
-                var user = _dbContext.Users.FirstOrDefault(u => u.Email.Equals(email));
+                var user = _dbContext.Users.FirstOrDefault(u => u.Email.Equals(userEmail));
                 if (user == null)
                 {
                     return BadRequest("User not found.");

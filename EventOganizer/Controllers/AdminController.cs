@@ -15,19 +15,20 @@ using EventOganizer.JWT;
 
 namespace EventOganizer.Controllers
 {
-   
-    public class AdminController : Controller
-    {
-        private readonly AplicationDBContext _context;
 
-        public AdminController(AplicationDBContext context)
+    [ApiController]
+    public class AdminController : ControllerBase
+    {
+        private readonly ApplicationDBContext _context;
+
+        public AdminController(ApplicationDBContext context)
         {
             _context = context;
         }
 
         [HttpPost]
         [Route("/CreateTickets")]
-        public async Task<IActionResult> CreateTickets([FromBody] EventOganizer.DTOs.TicketDTO dto)
+        public async Task<IActionResult> CreateTickets([FromBody] DTOs.TicketDTO dto)
         {
             var jwt = Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
 
@@ -50,6 +51,7 @@ namespace EventOganizer.Controllers
                     Price = dto.Price,
                     Location = dto.Location,
                     Date = parsedDateTime,
+                    Quantity = dto.Quantity,
                 };
 
                 await _context.Tickets.AddAsync(newTicket);

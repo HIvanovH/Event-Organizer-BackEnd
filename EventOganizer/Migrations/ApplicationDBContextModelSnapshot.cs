@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace EventOganizer.Migrations
 {
-    [DbContext(typeof(AplicationDBContext))]
-    partial class AplicationDBContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(ApplicationDBContext))]
+    partial class ApplicationDBContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
@@ -39,9 +39,6 @@ namespace EventOganizer.Migrations
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
-
-                    b.Property<bool>("isBought")
-                        .HasColumnType("bit");
 
                     b.HasKey("Id");
 
@@ -80,6 +77,9 @@ namespace EventOganizer.Migrations
 
                     b.Property<DateTime>("PublishedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
 
                     b.Property<string>("Title")
                         .IsRequired()

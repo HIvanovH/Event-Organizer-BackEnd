@@ -18,6 +18,5 @@ namespace EventOganizer.Entities
 
         [ForeignKey("UserId")]
         public User User { get; set; }
-        public bool isBought { get; set; }
     }
 }

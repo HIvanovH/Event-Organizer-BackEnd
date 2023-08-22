@@ -38,6 +38,12 @@
             var userRoles = principal.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
             return userRoles;
         }
+
+        public static string GetUserEmail(ClaimsPrincipal principal)
+        {
+            string userEmail = principal.FindAll(ClaimTypes.Email).Select(c => c.Value).FirstOrDefault().ToString();
+            return userEmail;
+        }
     }
 
 }

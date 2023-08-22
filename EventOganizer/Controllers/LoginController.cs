@@ -13,7 +13,8 @@ using System.Threading.Tasks;
 
 namespace EventOganizer.Controllers
 {
-    public class LoginController : Controller
+    [ApiController]
+    public class LoginController : ControllerBase
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly SignInManager<IdentityUser> _signInManager;
@@ -58,7 +59,6 @@ namespace EventOganizer.Controllers
         new Claim(ClaimTypes.Name, user.UserName),
         new Claim(ClaimTypes.Email, user.Email),
         new Claim(ClaimTypes.Role, roles?.FirstOrDefault()),
-        new Claim("UserId", user.Id)
         };
 
 
