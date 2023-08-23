@@ -3,7 +3,6 @@ using EventOganizer.DTOs;
 using EventOganizer.Entities;
 using EventOganizer.JWT;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace EventOrganizer.Controllers
 {
@@ -98,7 +97,7 @@ namespace EventOrganizer.Controllers
                 var query = from bo in _dbContext.BoughtItems
                             join t in _dbContext.Tickets on bo.TicketId equals t.Id 
                             where bo.UserId == user.Id
-                            group new { bo, t } by new { bo.UserId, bo.TicketId, t.Title, t.Description } into g
+                            group new { bo, t } by new { bo.UserId, bo.TicketId, t.Title, t.Description, t.Date, t.Location } into g
                             select new EventSummary 
                             {
                                
