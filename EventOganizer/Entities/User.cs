@@ -7,7 +7,6 @@ namespace EventOganizer.Entities
         public string Name { get; set; }
         public string LastName { get; set; }
 
-        public ICollection<BoughtItem> Cart { get; set; } = new List<BoughtItem>();
         
     }
 }

@@ -12,6 +12,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using EventOganizer.JWT;
+using EventOganizer.Interfaces;
+using EventOganizer.Repositories;
 
 namespace EventOganizer.Controllers
 {
@@ -19,11 +21,11 @@ namespace EventOganizer.Controllers
     [ApiController]
     public class AdminController : ControllerBase
     {
-        private readonly ApplicationDBContext _context;
+        private readonly ITicketRepository _ticketRepository;
 
-        public AdminController(ApplicationDBContext context)
+        public AdminController(ITicketRepository ticketRepository)
         {
-            _context = context;
+            _ticketRepository = ticketRepository;
         }
 
         [HttpPost]
@@ -38,71 +40,57 @@ namespace EventOganizer.Controllers
             }
 
             var userRoles = JwtUtility.GetUserRoles(principal);
-            if (userRoles.Contains("Admin")) { 
-            string combinedDateTimeString = $"{dto.Date} {dto.Time}";
-
-            if (DateTime.TryParseExact(combinedDateTimeString, "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDateTime))
-            {
-                var newTicket = new Entities.Ticket()
-                {
-                    Title = dto.Title,
-                    Description = dto.Description,
-                    Category = dto.Category,
-                    Price = dto.Price,
-                    Location = dto.Location,
-                    Date = parsedDateTime,
-                    Quantity = dto.Quantity,
-                };
-
-                await _context.Tickets.AddAsync(newTicket);
-                await _context.SaveChangesAsync();
+            if (userRoles.Contains("Admin")) {
+                await _ticketRepository.PostTicket(dto);
 
                 return Ok("Saved!");
-            }
-            else
-            {
-                return BadRequest("Invalid date or time format");
-            }
+         
             }
             return BadRequest("Roles could not be extracted.");
         }
 
-
         [HttpPut]
-        [Route("{id}")]
-        public async Task<IActionResult> UpdateTicketById([FromRoute] long id, [FromBody] DTOs.TicketDTO dto)
+        [Route("/Delete/{id}")]
+        public async Task<IActionResult> DeleteTicket([FromRoute] int id)
         {
-            var ticket = await _context.Tickets.FirstOrDefaultAsync(q => q.Id == id);
+            var jwt = Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
 
-            if (ticket is null)
+            if (string.IsNullOrEmpty(jwt) || !JwtUtility.ValidateToken(jwt, out var principal))
             {
-                return NotFound("Ticket Not Found!");
+                return Unauthorized();
             }
 
-            ticket.Title = dto.Title;
-            ticket.Description = dto.Description;
-            ticket.UpdatedAt = DateTime.Now;
+            var userRoles = JwtUtility.GetUserRoles(principal);
+            if (userRoles.Contains("Admin"))
+            {
+                await _ticketRepository.DeleteTicketAsync(id);
 
-            await _context.SaveChangesAsync();
+                return Ok("Deleted!");
 
-            return Ok("Ticket Updated Successfully");
+            }
+            return BadRequest("Roles could not be extracted.");
         }
 
-        [HttpDelete]
-        [Route("{id}")]
-        public async Task<IActionResult> DeleteTicketById([FromRoute] long id)
+        [HttpGet]
+        [Route("auth")]
+        public IActionResult CheckAdminStatus()
         {
-            var ticket = await _context.Tickets.FirstOrDefaultAsync(q => q.Id == id);
+            var jwt = Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
 
-            if (ticket is null)
+            if (string.IsNullOrEmpty(jwt) || !JwtUtility.ValidateToken(jwt, out var principal))
             {
-                return NotFound("Ticket Not Found!");
+                return Unauthorized();
             }
 
-            _context.Tickets.Remove(ticket);
-            await _context.SaveChangesAsync();
+            var userRoles = JwtUtility.GetUserRoles(principal);
+            if (userRoles.Contains("Admin"))
+            {
+                return Ok(new { IsAdmin = true });
+            }
 
-            return Ok("Ticket Deleted Successfully");
+            return Ok(new { IsAdmin = false });
         }
     }
+
+
 }

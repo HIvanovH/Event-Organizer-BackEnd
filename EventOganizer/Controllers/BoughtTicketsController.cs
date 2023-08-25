@@ -1,8 +1,13 @@
 ﻿using EventOganizer.Context;
 using EventOganizer.DTOs;
 using EventOganizer.Entities;
+using EventOganizer.Exceptions;
+using EventOganizer.Interfaces;
 using EventOganizer.JWT;
+using Jose;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace EventOrganizer.Controllers
 {
@@ -10,62 +15,49 @@ namespace EventOrganizer.Controllers
     [ApiController]
     public class BoughtTicketsController : ControllerBase
     {
-        private readonly ApplicationDBContext _dbContext;
-        public BoughtTicketsController(ApplicationDBContext dbContext)
+        private readonly IBoughtItemRepository _boughtItemRepository;
+        private readonly IUserRepository _userRepository;
+        public BoughtTicketsController(IBoughtItemRepository boughtItemRepository, IUserRepository userRepository)
         {
-            _dbContext = dbContext;
+            
+            _boughtItemRepository = boughtItemRepository;
+            _userRepository = userRepository;
         }
 
         [HttpPost("complete")]
-        public IActionResult CompletePurchase([FromBody] PurchaseDTO request)
+        public async Task<IActionResult> CompletePurchase([FromBody] PurchaseDTO request)
         {
             try
             {
-                var user = _dbContext.Users.FirstOrDefault(u => u.Email == request.Email);
+                if (string.IsNullOrEmpty(request.TokenData) || !JwtUtility.ValidateToken(request.TokenData, out var principal))
+                {
+                    return Unauthorized();
+                }
+
+                var userEmail = JwtUtility.GetUserEmail(principal);
+
+                var user = _userRepository.GetUserByEmail(userEmail);
+
                 if (user == null)
                 {
                     return BadRequest("User not found.");
                 }
 
-                var cartItems = request.CartItems;
+                List<CartItem> cartItems = request.CartItems;
 
-                using var transaction = _dbContext.Database.BeginTransaction();
+               await _boughtItemRepository.CompleteTransactionAsync(cartItems, user.Id);
 
-                foreach (var cartItem in cartItems)
-                {
-                    var boughtItem = new BoughtItem
-                    {
-                        UserId = user.Id,
-                        TicketId = cartItem.Id,
-                        Quantity = cartItem.Quantity
-                    };
 
-                    var ticket = _dbContext.Tickets.FirstOrDefault(q => q.Id == cartItem.Id);
-
-                    if (ticket == null)
-                    {
-                        transaction.Rollback(); 
-                        return NotFound($"Ticket with ID {cartItem.Id} not found.");
-                    }
-
-                    ticket.Quantity -= cartItem.Quantity;
-
-                    if (ticket.Quantity < 0)
-                    {
-                        transaction.Rollback(); 
-                        return BadRequest("Not enough tickets available.");
-                    }
-                    else
-                    {
-                        cartItem.IsBought = true;
-                        _dbContext.BoughtItems.Add(boughtItem);
-                    }
-                }
-
-                _dbContext.SaveChanges();
-                transaction.Commit();
 
                 return Ok("Purchase completed successfully.");
+            }
+            catch (NotFoundException ex)
+            {
+                return NotFound(ex.Message); 
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message); 
             }
             catch (Exception ex)
             {
@@ -88,43 +80,24 @@ namespace EventOrganizer.Controllers
             var userEmail = JwtUtility.GetUserEmail(principal);
             try
             {
-                var user = _dbContext.Users.FirstOrDefault(u => u.Email.Equals(userEmail));
+                var user = _userRepository.GetUserByEmail(userEmail);
                 if (user == null)
                 {
                     return BadRequest("User not found.");
                 }
 
-                var query = from bo in _dbContext.BoughtItems
-                            join t in _dbContext.Tickets on bo.TicketId equals t.Id 
-                            where bo.UserId == user.Id
-                            group new { bo, t } by new { bo.UserId, bo.TicketId, t.Title, t.Description, t.Date, t.Location } into g
-                            select new EventSummary 
-                            {
-                               
-                                TicketId = g.Key.TicketId,
-                                TotalQuantity = g.Sum(x => x.bo.Quantity),
-                                Title = g.Key.Title,
-                                Description = g.Key.Description
-                            };
 
-                List<EventSummary> eventSummaries = query.ToList();
+                List<EventSummary> eventSummaries = await _boughtItemRepository.GetPurchaseHistoryByUserIdAsync(user.Id);
 
                 return Ok(eventSummaries);
 
             }
+           
             catch (Exception ex)
             {
                 return BadRequest($"Error retrieving purchase history: {ex.Message}");
             }
         }
     }
-    public class EventSummary
-    {
-        public int TicketId { get; set; }
-        public int TotalQuantity { get; set; }
-        public string Title { get; set; }
-        public string Description { get; set; }
-        public string Location { get; set; }
-        public string Date { get; set; }
-    }
+    
 }

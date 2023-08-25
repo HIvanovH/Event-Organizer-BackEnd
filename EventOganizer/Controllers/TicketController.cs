@@ -1,5 +1,7 @@
 ﻿using EventOganizer.Context;
 using EventOganizer.Entities;
+using EventOganizer.Interfaces;
+using EventOganizer.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,29 +12,29 @@ namespace EventOganizer.Controllers
     [ApiController]
     public class TicketController : ControllerBase
     {
-        private readonly ApplicationDBContext _context;
+        private readonly ITicketRepository _ticketRepository;
 
-        public TicketController(ApplicationDBContext context)
+        public TicketController(ITicketRepository ticketRepository)
         {
-            _context = context;
+            _ticketRepository = ticketRepository;
         }
 
         
         [HttpGet]
 
-        public async Task<ActionResult<List<Entities.Ticket>>> GetAllTickets()
+        public async Task<ActionResult<List<Ticket>>> GetAllTickets()
         {
-            var tickets = await _context.Tickets.ToListAsync();
+            List<Ticket> tickets = await _ticketRepository.GetAllTicketsAsync();
             return Ok(tickets);
         }
 
         [HttpGet]
         [Route("{id}")]
-        public async Task<ActionResult<Entities.Ticket>> GetTicketById([FromRoute] long id )
+        public async Task<ActionResult<Ticket>> GetTicketById([FromRoute] int id )
         {
-            var ticket = await _context.Tickets.FirstOrDefaultAsync(q=>q.Id==id);
+            Ticket ticket = await _ticketRepository.GetByIdAsync(id);
 
-            if(ticket is null)
+            if (ticket is null)
             {
                 return NotFound("Ticket Not Found!");
             }

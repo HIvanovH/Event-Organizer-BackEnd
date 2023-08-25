@@ -16,5 +16,6 @@ namespace EventOganizer.Entities
         public string Category { get; set; }
         public DateTime Date { get; set; }
         public int Quantity { get; set; }
+        public bool IsDeleted { get; set; }
     }
 }

@@ -13,8 +13,10 @@ using System.Text;
 using EventOganizer.Context;
 using EventOganizer.JWT;
 using Microsoft.Extensions.Options;
+using EventOganizer.Interfaces;
+using EventOganizer.Repositories;
 
-internal class Program
+public class Program
 {
     public static void Main(string[] args)
     {
@@ -49,7 +51,9 @@ internal class Program
             var connectionString = configuration.GetConnectionString("local");
             options.UseSqlServer(connectionString);
         });
-
+        services.AddScoped<ITicketRepository, TicketRepository>();
+        services.AddScoped<IBoughtItemRepository, BoughtItemRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
         services.AddIdentity<IdentityUser, IdentityRole>(options =>
         {
             // Configure identity options here

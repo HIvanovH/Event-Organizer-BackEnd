@@ -20,10 +20,13 @@ namespace EventOganizer.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateRegistration([FromBody] DTOs.RegisterDTO dto)
         {
-            var newUser = new IdentityUser
+            var newUser = new Entities.User
             {
                 UserName = dto.Email,
                 Email = dto.Email,
+                Name = dto.Name,
+                LastName = dto.LastName,
+
             };
 
             var result = await _userManager.CreateAsync(newUser, dto.Password);
