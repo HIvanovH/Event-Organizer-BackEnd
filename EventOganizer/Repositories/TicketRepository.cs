@@ -42,6 +42,7 @@ namespace EventOganizer.Repositories
                     Location = dto.Location,
                     Date = parsedDateTime,
                     Quantity = dto.Quantity,
+                    imagePath = dto.imagePath,
                 };
 
                 try
