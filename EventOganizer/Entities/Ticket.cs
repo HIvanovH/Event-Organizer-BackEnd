@@ -17,5 +17,8 @@ namespace EventOganizer.Entities
         public DateTime Date { get; set; }
         public int Quantity { get; set; }
         public bool IsDeleted { get; set; }
+
+        public string imagePath { get; set; }
+        
     }
 }

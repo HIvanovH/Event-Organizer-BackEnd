@@ -11,6 +11,6 @@
         public int Quantity { get; set; }
         public string Time { get; set; }
         
-
+        public string imagePath { get; set; }
     }
 }

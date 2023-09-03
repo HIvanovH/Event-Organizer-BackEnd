@@ -15,6 +15,7 @@ using EventOganizer.JWT;
 using Microsoft.Extensions.Options;
 using EventOganizer.Interfaces;
 using EventOganizer.Repositories;
+using EventOganizer.EmailSender;
 
 public class Program
 {
@@ -96,5 +97,6 @@ public class Program
             };
         })
         .AddCookie();
+        services.AddScoped<EmailSender>();
     }
 }

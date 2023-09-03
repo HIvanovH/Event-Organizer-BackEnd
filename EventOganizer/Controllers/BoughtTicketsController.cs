@@ -1,5 +1,6 @@
 ﻿using EventOganizer.Context;
 using EventOganizer.DTOs;
+using EventOganizer.EmailSender;
 using EventOganizer.Entities;
 using EventOganizer.Exceptions;
 using EventOganizer.Interfaces;
@@ -17,11 +18,13 @@ namespace EventOrganizer.Controllers
     {
         private readonly IBoughtItemRepository _boughtItemRepository;
         private readonly IUserRepository _userRepository;
-        public BoughtTicketsController(IBoughtItemRepository boughtItemRepository, IUserRepository userRepository)
+        private readonly EmailSender _emailSender;
+        public BoughtTicketsController(IBoughtItemRepository boughtItemRepository, IUserRepository userRepository, EmailSender emailSender)
         {
             
             _boughtItemRepository = boughtItemRepository;
             _userRepository = userRepository;
+           _emailSender = emailSender;
         }
 
         [HttpPost("complete")]
@@ -47,7 +50,19 @@ namespace EventOrganizer.Controllers
 
                await _boughtItemRepository.CompleteTransactionAsync(cartItems, user.Id);
 
+                string recipientName;
+                if (user is User)
+                {
+                     recipientName = ((User)user).Name;
+                }
+                else
+                {
+                     recipientName = user.Id;
+                }
+               
+                string recipientEmail = user.Email;
 
+                _emailSender.SendTicketEmail(recipientEmail, recipientName, cartItems);
 
                 return Ok("Purchase completed successfully.");
             }

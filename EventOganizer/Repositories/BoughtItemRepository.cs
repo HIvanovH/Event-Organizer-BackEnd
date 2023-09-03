@@ -69,13 +69,16 @@ namespace EventOganizer.Repositories
             var query = from bo in _dbContext.BoughtItems
                         join t in _dbContext.Tickets on bo.TicketId equals t.Id
                         where bo.UserId.Equals(userId)
-                        group new { bo, t } by new { bo.TicketId, t.Title, t.Description } into g
+                        group new { bo, t } by new { bo.TicketId, t.Title, t.Description, t.Location, t.Date, t.imagePath } into g
                         select new EventSummary
                         {
                             TicketId = g.Key.TicketId,
                             TotalQuantity = g.Sum(x => x.bo.Quantity),
                             Title = g.Key.Title,
-                            Description = g.Key.Description
+                            Description = g.Key.Description,
+                            Location = g.Key.Location,
+                            Date = g.Key.Date,
+                            ImagePath = g.Key.imagePath
                         };
 
             return await query.ToListAsync();
